@@ -15,18 +15,6 @@ bot = lightbulb.BotApp(token=token, prefix="!!", intents=hikari.Intents.ALL)
 bot.load_extensions_from("./commands") 
 bot.load_extensions_from("./slash_commands")
 
-def get_dirname():
-    with open("storage/dirname.json") as f:
-        data = json.load(f)
-        dirname = os.path.abspath(os.getcwd())
-        if not data:
-            data.append(dirname)
-        else:
-            data.clear()
-            data.append(dirname)
-        with open("storage/dirname.json", "w") as f:
-            json.dump(data, f, indent=3)
-    return dirname
 
 @bot.command()
 @lightbulb.add_checks(lightbulb.owner_only | lightbulb.has_roles(715209651326812180))
