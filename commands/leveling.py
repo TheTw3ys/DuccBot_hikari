@@ -96,7 +96,7 @@ async def command_level(ctx: lightbulb.context.PrefixContext):
                                   f"Experience für das nächste Level: {next_experience}XP",
                       color=0x22a7f0)
         embed.set_thumbnail(user.avatar_url)
-        embed.set_footer(text=f"Sent in guild: {guild.name} Full view at htpps://duccbot.ichweissja.net")
+        embed.set_footer(text=f"Sent in guild: {guild.name} Full view at https://duccbot.ichweissja.net")
     await ctx.respond(embed=embed)
 
 
