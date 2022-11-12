@@ -7,12 +7,12 @@ import hikari
 import lightbulb
 from hikari import Embed
 
-
 os.chdir(os.getcwd() + "/storage")
 
 sys.path.append(f"{os.getcwd()}")  # adds folder "/storage" to sys.path temporarily
 
-from functions_and_classes import Leveling  # module can now be used from ./v2/storage/functions_and_classes
+from functions_and_classes import \
+    Leveling  # module can now be used from ./v2/storage/functions_and_classes
 
 plugin = lightbulb.Plugin(name="Leveling", description="Leveling I guess")
 guild_list = [699010600331771955, 911288030210428938, 715208493237403731]
@@ -104,11 +104,9 @@ async def command_level(ctx: lightbulb.context.PrefixContext):
 async def on_message(event: hikari.MessageCreateEvent):
     guild = await event.app.rest.fetch_guild(event.message.guild_id)
     users_json = str(os.path.join(os.getcwd(), "ranking", (guild.name + ".json")))
-    if not event.author.is_bot:
-
-        if not os.path.exists(users_json):
-            with open(users_json, "w") as a:    # possible because it is the same as above but now actually created
-                a.write("{}")
+    if not event.author.is_bot and os.path.exists(users_json):
+        with open(users_json, "w") as a:    # possible because it is the same as above but now actually created
+            a.write("{}")
 
 
 
