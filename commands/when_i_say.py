@@ -18,21 +18,27 @@ class AlreadyTrigger(Exception):
     pass
 
 
-@plugin.listener(hikari.MessageCreateEvent)
+@plugin.listener(hikari.MessageCreateEvent)  # TODO Write this better
 async def on_message(event: hikari.MessageCreateEvent):
     msg = event.content
     r_guild = await event.app.rest.fetch_guild(event.message.guild_id)
     if event.is_human:
-        if ">>" not in msg:
-            if "when i say" in msg:
-                def test(message, guild):
+        if "!!" not in msg:
+            if "if i say" in msg:
+                def split_message(message, guild):
                     liste = message.split("you say")  # splits message to ['when i say this ', ' that']
                     you_say = str(liste[1]).strip()  # thing that is reacted to
 
-                    liste_2 = str(liste[0]).strip().split("when i say")
+                    liste_2 = str(liste[0]).strip().split("if i say")
                     when_i_say = str(liste_2[1]).strip()  # trigger
                     when_i_say_data = {f"{when_i_say}": f"{you_say}"}  # data
-
+                    if not os.path.exists(trigger_list):
+                        with open(trigger_list,
+                                  "w") as a:  # possible because it is the same as above but now actually created
+                            a.write('{'
+                                    '"guilds":{'
+                                    '}'
+                                    '}')
                     with open(trigger_list) as f:
                         data: dict = json.load(f)
 
@@ -49,12 +55,11 @@ async def on_message(event: hikari.MessageCreateEvent):
                         json.dump(data, f, indent=2)  # add new trigger and response
 
                 try:
-                    test(msg, str(r_guild.id))
+                    split_message(msg, str(r_guild.id))
                     await event.message.respond("Added Trigger to database")
                 except AlreadyTrigger:
                     send_message = await event.message.respond("This is already a Trigger. Do you want to edit it?")
             else:
-                guild = await event.app.rest.fetch_guild(event.message.guild_id)
                 msg = event.message.content
                 with open(trigger_list, "r") as f:
                     data = json.load(f)
@@ -63,7 +68,7 @@ async def on_message(event: hikari.MessageCreateEvent):
                         liste.append(id)
                     if str(event.message.guild_id) in liste:
                         try:
-                            data = data["guilds"][str(guild.id)]
+                            data = data["guilds"][str(event.message.guild_id)]
                         except KeyError:
                             with open(trigger_list, "w") as d:
                                 data = json.load(d)

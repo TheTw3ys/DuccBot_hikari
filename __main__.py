@@ -2,11 +2,17 @@ import json
 import os
 import time
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
+token = os.getenv('TOKEN')
+
 import hikari
 import lightbulb
 from lightbulb import commands
 
-token = ""
+token = token
 
 
 # noinspection PyTypeChecker
@@ -21,7 +27,7 @@ bot.load_extensions_from("./slash_commands")
 @lightbulb.command(name="reload", description="reload extensions")
 @lightbulb.implements(commands.PrefixCommand)
 async def reload_extensions(ctx: lightbulb.context.PrefixContext):
-    if not len(bot.extensions) == 0:
+    if len(bot.extensions) != 0:
         await ctx.respond("Unloaded all extensions")
         bot.reload_extensions()
         time.sleep(1)

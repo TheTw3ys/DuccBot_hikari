@@ -110,11 +110,12 @@ async def on_message(event: hikari.MessageCreateEvent):
             with open(users_json, "w") as a:    # possible because it is the same as above but now actually created
                 a.write("{}")
 
+
+
+    async def update_full_data(userjson):
         with open(info_json, "r") as d:
             d = json.load(d)
             exp = d.get("expchange")
-
-    async def update_full_data(userjson):
         with open(userjson) as b:
             users = json.load(b)
         await update_data(users, event.author)
@@ -152,7 +153,7 @@ async def update_data(users, user) -> None:
         users[f'{user.id}']['level'] = 1
         users[f'{user.id}']['name'] = str(user.username)
 
-y
+
 async def add_experience(users, user, exp):
     users[f'{str(user.id)}']['experience'] += exp
 
