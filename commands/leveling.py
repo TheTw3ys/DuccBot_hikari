@@ -103,6 +103,7 @@ async def command_level(ctx: lightbulb.context.PrefixContext):
 @plugin.listener(event=hikari.MessageCreateEvent)
 async def on_message(event: hikari.MessageCreateEvent):
     guild = await event.app.rest.fetch_guild(event.message.guild_id)
+    guild_id = str(guild.id)
     users_json = str(os.path.join(os.getcwd(), "ranking", (guild.name + ".json")))
     if not event.author.is_bot and os.path.exists(users_json):
         with open(users_json, "w") as a:    # possible because it is the same as above but now actually created
@@ -111,17 +112,27 @@ async def on_message(event: hikari.MessageCreateEvent):
 
 
     async def update_full_data(userjson):
-        with open(info_json, "r") as d:
-            d = json.load(d)
-            exp = d.get("expchange")
+        if not os.path.exists(os.path.join(os.getcwd(), ("info.json"))):
+            with open(os.path.join(os.getcwd(), ("info.json")), "w") as f:
+                f.write("{"+ f'"{guild_id}" : 5' + "}")
+        await asyncio.sleep(1)
+        exp = 5
+        if str(userjson) != global_users_json:
+            with open(info_json, "r") as d:              
+                d = json.load(d)
+                exp = int(d.get(guild_id))
+                print(exp)
+        asyncio.sleep
         with open(userjson) as b:
             users = json.load(b)
+        
         await update_data(users, event.author)
         await add_experience(users, event.author, exp)
         await level_up(users, event.author, event)
         with open(userjson, 'w') as f:
             json.dump(users, f, indent=2)
     await asyncio.sleep(1)
+
     await update_full_data(users_json)
     await update_full_data(global_users_json)
 

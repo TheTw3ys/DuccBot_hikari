@@ -1,4 +1,4 @@
-from functions_and_classes import Administration
+
 import lightbulb
 import hikari
 import json
@@ -7,7 +7,6 @@ import os
 os.chdir(os.getcwd() + "/storage")
 
 sys.path.append(f"{os.getcwd()}")
-
 
 plugin = lightbulb.Plugin(
     name="StupidStuff", description="Some things I came up with dunno")

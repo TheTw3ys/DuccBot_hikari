@@ -1,7 +1,7 @@
 import hikari
 import lightbulb
 import os
-
+import datetime
 plugin = lightbulb.Plugin(name="Clear")
 os.chdir(os.getcwd() + "/storage")
 
@@ -17,11 +17,17 @@ os.chdir(os.getcwd() + "/storage")
 @lightbulb.implements(lightbulb.commands.PrefixCommand)
 async def command_clear(ctx: lightbulb.context.PrefixContext):
     count = int(ctx.options.count)
-    channel = ctx.get_channel()
-    await plugin.bot.rest.delete_messages(
-        ctx.channel_id,
-        await plugin.bot.rest.fetch_messages(ctx.channel_id).limit(count))
-    await ctx.respond(f'Cleared {count} messages.')
+    messages = (
+        await ctx.app.rest.fetch_messages(ctx.channel_id)
+        .take_until(lambda m: datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=14) > m.created_at)
+        .limit(count)
+    )
+    if messages:
+        await ctx.app.rest.delete_messages(ctx.channel_id, messages)
+        await ctx.respond(f"Purged {len(messages)}/{count} messages.")
+    else:
+        await ctx.respond("Could not find any messages younger than 14 days!")
+
 
 
 def load(bot: lightbulb.BotApp):

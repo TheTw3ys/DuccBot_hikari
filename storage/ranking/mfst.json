@@ -1,26 +1,8 @@
 {
-  "763830974130815080": {
-    "id": 763830974130815080,
-    "experience": 30,
-    "level": 3,
-    "name": "CuzImNetsky"
-  },
   "480439768962957312": {
     "id": 480439768962957312,
-    "experience": 130,
-    "level": 5,
+    "experience": 5,
+    "level": 1,
     "name": "meppi"
-  },
-  "715216302863548508": {
-    "id": 715216302863548508,
-    "experience": 15,
-    "level": 2,
-    "name": "Welp_Im_Testing_"
-  },
-  "717349947858485268": {
-    "id": 717349947858485268,
-    "experience": 10,
-    "level": 2,
-    "name": "Ducc Bot"
   }
 }
