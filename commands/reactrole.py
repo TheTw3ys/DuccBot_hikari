@@ -47,7 +47,6 @@ async def reaction_add(event: hikari.GuildReactionAddEvent):
     with open(reactrole_json) as react_file:
         if event.member == hikari.PartialUser.is_bot:
             print("Ein Bot hat anscheinend reagiert")
-            return
         else:
             data = json.load(react_file)
             for x in data:

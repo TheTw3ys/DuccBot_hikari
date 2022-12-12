@@ -7,11 +7,14 @@ import lightbulb
 
 os.chdir(os.getcwd() + "/storage")  # changes directory to ./v2/storage
 
-sys.path.append(f"{os.getcwd()}")  # adds folder "/storage" to sys.path temporarily
+# adds folder "/storage" to sys.path temporarily
+sys.path.append(f"{os.getcwd()}")
 
-plugin = lightbulb.Plugin(name="When I say you say...", description="Some things I came up with dunno")
+plugin = lightbulb.Plugin(name="When I say you say...",
+                          description="Some things I came up with dunno")
 
-trigger_list = str(os.path.join(os.getcwd(), "triggers.json"))  # makes path available for Linux and Windows
+# makes path available for Linux and Windows
+trigger_list = str(os.path.join(os.getcwd(), "triggers.json"))
 
 
 class AlreadyTrigger(Exception):
@@ -22,62 +25,65 @@ class AlreadyTrigger(Exception):
 async def on_message(event: hikari.MessageCreateEvent):
     msg = event.content
     r_guild = await event.app.rest.fetch_guild(event.message.guild_id)
-    if event.is_human:
-        if "!!" not in msg:
-            if "if i say" in msg:
-                def split_message(message, guild):
-                    liste = message.split("you say")  # splits message to ['when i say this ', ' that']
-                    you_say = str(liste[1]).strip()  # thing that is reacted to
+    if event.is_human and "!!" not in msg:
+        if "if i say" in msg:
+            def split_message(message, guild):
+                # splits message to ['when i say this ', ' that']
+                liste = message.split("you say")
+                you_say = str(liste[1]).strip()  # thing that is reacted to
 
-                    liste_2 = str(liste[0]).strip().split("if i say")
-                    when_i_say = str(liste_2[1]).strip()  # trigger
-                    when_i_say_data = {f"{when_i_say}": f"{you_say}"}  # data
-                    if not os.path.exists(trigger_list):
-                        with open(trigger_list,
-                                  "w") as a:  # possible because it is the same as above but now actually created
-                            a.write('{'
-                                    '"guilds":{'
-                                    '}'
-                                    '}')
-                    with open(trigger_list) as f:
-                        data: dict = json.load(f)
+                liste_2 = str(liste[0]).strip().split("if i say")
+                when_i_say = str(liste_2[1]).strip()  # trigger
+                when_i_say_data = {f"{when_i_say}": f"{you_say}"}  # data
+                if not os.path.exists(trigger_list):
+                    with open(trigger_list,
+                              "w") as a:  # possible because it is the same as above but now actually created
+                        a.write('{'
+                                '"guilds":{'
+                                '}'
+                                '}')
+                with open(trigger_list) as f:
+                    data: dict = json.load(f)
 
-                        if guild in data["guilds"]:  # if guild_id in storage
-                            if when_i_say in data["guilds"][guild]:  # if the trigger already registered
-                                raise AlreadyTrigger
+                    if guild in data["guilds"]:  # if guild_id in storage
+                        # if the trigger already registered
+                        if when_i_say in data["guilds"][guild]:
+                            raise AlreadyTrigger
 
-                            data["guilds"][guild].update(when_i_say_data)  # just update the triggers of the guild_id
-                        else:
-                            data["guilds"].update(
-                                {guild: when_i_say_data})  # add new guild_id to storage and first triggers
+                        # just update the triggers of the guild_id
+                        data["guilds"][guild].update(when_i_say_data)
+                    else:
+                        data["guilds"].update(
+                            {guild: when_i_say_data})  # add new guild_id to storage and first triggers
 
-                    with open(trigger_list, 'w') as f:
-                        json.dump(data, f, indent=2)  # add new trigger and response
+                with open(trigger_list, 'w') as f:
+                    # add new trigger and response
+                    json.dump(data, f, indent=2)
 
-                try:
-                    split_message(msg, str(r_guild.id))
-                    await event.message.respond("Added Trigger to database")
-                except AlreadyTrigger:
-                    send_message = await event.message.respond("This is already a Trigger. Do you want to edit it?")
-            else:
-                msg = event.message.content
-                with open(trigger_list, "r") as f:
-                    data = json.load(f)
-                    liste = []
-                    for id in data["guilds"]:
-                        liste.append(id)
-                    if str(event.message.guild_id) in liste:
-                        try:
-                            data = data["guilds"][str(event.message.guild_id)]
-                        except KeyError:
-                            with open(trigger_list, "w") as d:
-                                data = json.load(d)
-                                data["guilds"].update({str(guild.id): {}})
-                                json.dump(data, d, indent=2)
-                        for trigger in data:
-                            if trigger in msg:
-                                answer = data.get(trigger)
-                                await event.message.respond(f"{answer}")
+            try:
+                split_message(msg, str(r_guild.id))
+                await event.message.respond("Added Trigger to database")
+            except AlreadyTrigger:
+                await event.message.respond("This is already a Trigger. Do you want to edit it?")
+        else:
+            msg = event.message.content
+            with open(trigger_list, "r") as f:
+                data = json.load(f)
+                liste = []
+                for id in data["guilds"]:
+                    liste.append(id)
+                if str(event.message.guild_id) in liste:
+                    try:
+                        data = data["guilds"][str(event.message.guild_id)]
+                    except KeyError:
+                        with open(trigger_list, "w") as d:
+                            data = json.load(d)
+                            data["guilds"].update({str(event.message.guild_id): {}})
+                            json.dump(data, d, indent=2)
+                    for trigger in data:
+                        if trigger in msg:
+                            answer = data.get(trigger)
+                            await event.message.respond(f"{answer}")
 
 
 @plugin.command
@@ -112,7 +118,6 @@ async def command_edit_trigger(ctx: lightbulb.context.PrefixContext):
     with open(trigger_list, "r") as f:
         data = json.load(f)
         if trigger in data["guilds"][str(guild.id)]:
-            value = data["guilds"][str(guild.id)].get(trigger)
             data["guilds"][str(guild.id)][trigger] = answer
 
         else:

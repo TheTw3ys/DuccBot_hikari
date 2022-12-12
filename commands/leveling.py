@@ -10,6 +10,7 @@ from hikari import Embed
 os.chdir(os.getcwd() + "/storage")
 
 sys.path.append(f"{os.getcwd()}")  # adds folder "/storage" to sys.path temporarily
+_json = ".json"
 
 from functions_and_classes import \
     Leveling  # module can now be used from ./v2/storage/functions_and_classes
@@ -28,10 +29,9 @@ info_json = str(os.path.join(os.getcwd(), "info.json"))  # makes path availabile
 @lightbulb.command(name="leaderboard", description="The leaderboard of the global Ducc Bot")
 @lightbulb.implements(lightbulb.commands.PrefixCommand)
 async def command_leaderboard(ctx: lightbulb.context.PrefixContext):
-    number = ctx.options.number
+                                # TODO add way of list e.g. 1-10; 11-20 etc.
     guild = ctx.get_guild()
-    users_json = str(os.path.join(os.getcwd(), "ranking", (guild.name + ".json")))
-    message = ""
+    users_json = str(os.path.join(os.getcwd(), "ranking", (guild.name + _json)))
     leaderboard = Leveling.get_leaderboard(users_json=users_json)
     embed = Embed(title="Global Leaderboard")
     liste = ""
@@ -78,7 +78,7 @@ async def command_expchange(ctx: lightbulb.context.PrefixContext):
 async def command_level(ctx: lightbulb.context.PrefixContext):
     member = ctx.options.member
     guild = ctx.get_guild()
-    users_json = str(os.path.join(os.getcwd(), "ranking", (guild.name + ".json")))
+    users_json = str(os.path.join(os.getcwd(), "ranking", (guild.name + _json)))
     with open(users_json, "r") as f:
         data = json.load(f)
 
@@ -104,7 +104,7 @@ async def command_level(ctx: lightbulb.context.PrefixContext):
 async def on_message(event: hikari.MessageCreateEvent):
     guild = await event.app.rest.fetch_guild(event.message.guild_id)
     guild_id = str(guild.id)
-    users_json = str(os.path.join(os.getcwd(), "ranking", (guild.name + ".json")))
+    users_json = str(os.path.join(os.getcwd(), "ranking", (guild.name + _json)))
     if not event.author.is_bot and os.path.exists(users_json):
         with open(users_json, "w") as a:    # possible because it is the same as above but now actually created
             a.write("{}")
@@ -140,10 +140,10 @@ async def on_message(event: hikari.MessageCreateEvent):
 @plugin.listener(event=hikari.MemberCreateEvent)
 async def on_member_join(event: hikari.MemberCreateEvent):
     guild = await event.app.rest.fetch_guild(event.guild_id)
-    users_json = str(os.path.join(os.getcwd(), "ranking", (guild.name + ".json")))
+    users_json = str(os.path.join(os.getcwd(), "ranking", (guild.name + _json)))
 
-    if not os.path.exists(os.path.join(os.getcwd(), "ranking", (guild.name + ".json"))):
-        with open(os.path.join(os.getcwd(), "ranking", (guild.name + ".json")), "w") as a:
+    if not os.path.exists(os.path.join(os.getcwd(), "ranking", (guild.name + _json))):
+        with open(os.path.join(os.getcwd(), "ranking", (guild.name + _json)), "w") as a:
             a.write("{}")
     with open(users_json, "r") as c:
         users = json.load(c)

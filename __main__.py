@@ -1,3 +1,6 @@
+from lightbulb import commands
+import lightbulb
+import hikari
 import json
 import os
 import time
@@ -8,17 +11,12 @@ load_dotenv()
 
 token = os.getenv('TOKEN')
 
-import hikari
-import lightbulb
-from lightbulb import commands
-
-token = token
 
 
 # noinspection PyTypeChecker
 bot = lightbulb.BotApp(token=token, prefix="!!", intents=hikari.Intents.ALL)
 
-bot.load_extensions_from("./commands") 
+bot.load_extensions_from("./commands")
 bot.load_extensions_from("./slash_commands")
 
 

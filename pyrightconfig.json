@@ -1,0 +1,11 @@
+{
+    "reportMissingImports": false,
+    "reportMissingTypeStubs": false,
+    "reportShadowedImports": false,
+    "defineConstant": {
+        "DEBUG": false
+      },
+      "ignore": [
+        "C:/Projects/DuccBot/storage/test.py"
+      ],
+}
