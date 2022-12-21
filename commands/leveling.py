@@ -25,41 +25,51 @@ info_json = str(os.path.join(os.getcwd(), "info.json"))  # makes path availabile
 @plugin.command
 @lightbulb.option("text", type=str, description="Why are you sending still something",
                   modifier=lightbulb.commands.OptionModifier.CONSUME_REST, required=False)
-@lightbulb.option("number", type=int, description="The list of the leaderboard ", required=False)
+@lightbulb.option("number", type=int, description="The list of the leaderboard ", required=False, default=1)
 @lightbulb.command(name="leaderboard", description="The leaderboard of the global Ducc Bot")
 @lightbulb.implements(lightbulb.commands.PrefixCommand)
 async def command_leaderboard(ctx: lightbulb.context.PrefixContext):
-                                # TODO add way of list e.g. 1-10; 11-20 etc.
+    max_number = int(ctx.options.number) * 10  
+    print(max_number)                         # TODO add way of list e.g. 1-10; 11-20 etc.
     guild = ctx.get_guild()
     users_json = str(os.path.join(os.getcwd(), "ranking", (guild.name + _json)))
     leaderboard = Leveling.get_leaderboard(users_json=users_json)
-    embed = Embed(title="Global Leaderboard")
+    embed = Embed(title="Global Leaderboard", description="empty")
     liste = ""
-    x = 1
+    x = 0
+    print(len(leaderboard))
     for list1 in leaderboard:
+        x += 1
+        if not x > max_number -10:              # not working quite right
+            print("too less")
+            continue
+        x + max_number - 10
         member = f"<@!{list1[0]}>"
         # embed.add_field(name=member, value=list1[1])
         string = f"{x}. {member} {list1[1]}exp lvl {int(list1[1] ** (1 / 3))}\r\n"
-        x += 1
+        x - max_number + 10
         liste += string
+        if x == max_number:
+            break
+    if liste == "":
+        embed.description= "empty"    
     embed.description = str(liste)
     await ctx.respond(embed=embed)
 
 
 @plugin.command
-@lightbulb.option("text", type=str, description="Why are you sending still something",
+@lightbulb.option("text", type=str, description="Why are you still sending something",
                   modifier=lightbulb.commands.OptionModifier.CONSUME_REST, required=False)
 @lightbulb.option("exp", type=str, description="the Experience you should get now (an Integer please)", required=False)
 @lightbulb.command(name="expchange", description="Changes the Experience you gain from the leveling system")
 @lightbulb.implements(lightbulb.commands.PrefixCommand)
 async def command_expchange(ctx: lightbulb.context.PrefixContext):
     args1 = ctx.options.exp
-    embed = Embed(title="Expchange")
-    print(args1)                                                    #TODO rewrite so that each guild has own kind of exp
+    embed = Embed(title="Expchange")                                                 
     if args1.isdigit():
         with open(info_json, "r") as f:
             newexp = json.load(f)
-            newexp["expchange"] = int(args1)
+            newexp[f"{ctx.get_guild().id}"] = int(args1)
             with open(info_json, "w") as d:
                 json.dump(newexp, d)
         embed.description = f'Changed Xp-Multiplier to {int(args1)}'
@@ -105,9 +115,10 @@ async def on_message(event: hikari.MessageCreateEvent):
     guild = await event.app.rest.fetch_guild(event.message.guild_id)
     guild_id = str(guild.id)
     users_json = str(os.path.join(os.getcwd(), "ranking", (guild.name + _json)))
-    if not event.author.is_bot and os.path.exists(users_json):
-        with open(users_json, "w") as a:    # possible because it is the same as above but now actually created
-            a.write("{}")
+    if not event.author.is_bot:
+        if not os.path.exists(users_json):
+            with open(users_json, "w") as a:    # possible because it is the same as above but now actually created
+                a.write("{}")
 
 
 
@@ -121,7 +132,6 @@ async def on_message(event: hikari.MessageCreateEvent):
             with open(info_json, "r") as d:              
                 d = json.load(d)
                 exp = int(d.get(guild_id))
-                print(exp)
         asyncio.sleep
         with open(userjson) as b:
             users = json.load(b)
