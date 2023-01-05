@@ -29,31 +29,28 @@ info_json = str(os.path.join(os.getcwd(), "info.json"))  # makes path availabile
 @lightbulb.command(name="leaderboard", description="The leaderboard of the global Ducc Bot")
 @lightbulb.implements(lightbulb.commands.PrefixCommand)
 async def command_leaderboard(ctx: lightbulb.context.PrefixContext):
-    max_number = int(ctx.options.number) * 10  
-    print(max_number)                         # TODO add way of list e.g. 1-10; 11-20 etc.
+    max_number = int(ctx.options.number) * 10                     
     guild = ctx.get_guild()
-    users_json = str(os.path.join(os.getcwd(), "ranking", (guild.name + _json)))
-    leaderboard = Leveling.get_leaderboard(users_json=users_json)
+    user_json = str(os.path.join(os.getcwd(), "ranking", (guild.name + _json)))
+    leaderboard = Leveling.get_leaderboard(users_json=user_json)
     embed = Embed(title="Global Leaderboard", description="empty")
-    liste = ""
+    description = ""
     x = 0
-    print(len(leaderboard))
     for list1 in leaderboard:
         x += 1
-        if not x > max_number -10:              # not working quite right
-            print("too less")
+        if not x > max_number -10:            
             continue
         x + max_number - 10
         member = f"<@!{list1[0]}>"
-        # embed.add_field(name=member, value=list1[1])
         string = f"{x}. {member} {list1[1]}exp lvl {int(list1[1] ** (1 / 3))}\r\n"
         x - max_number + 10
-        liste += string
+        description+= string
         if x == max_number:
             break
-    if liste == "":
-        embed.description= "empty"    
-    embed.description = str(liste)
+    embed.description = str(description)
+    if not description:
+        embed.description= "Empty\r\nBro read the page number"    
+    embed.set_footer(f"Page {int(max_number/10)}/{int(len(leaderboard)/10)+ 1}")
     await ctx.respond(embed=embed)
 
 
