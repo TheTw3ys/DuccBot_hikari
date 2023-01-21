@@ -38,7 +38,7 @@ async def command_leaderboard(ctx: lightbulb.context.PrefixContext):
     x = 0
     for list1 in leaderboard:
         x += 1
-        if not x > max_number -10:            
+        if x <= max_number -10:            
             continue
         x + max_number - 10
         member = f"<@!{list1[0]}>"

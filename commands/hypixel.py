@@ -7,21 +7,20 @@ import json
 import sys
 import os
 os.chdir(os.getcwd() + "/storage")
-
+bazaar =str(os.path.join(os.getcwd(), "bazaar.json"))
+print(bazaar)
 sys.path.append(f"{os.getcwd()}")
-
 plugin = lightbulb.Plugin(
     name="Hypixel", description="Some things for Hypixel")
 
 
-class response
 def get_current_bazaar_prices()-> list:
     headers= {"Api-Key": os.getenv("HYPIXEL_TOKEN") }
     response = requests.request(url="https://api.hypixel.net/skyblock/bazaar", headers=headers ,method="GET")
-    with open("test.json", "r") as f:
+    with open("bazaar", "r") as f:
         liste = []
         data = json.load(f)
-        with open("test.json", "w") as d:
+        with open(bazaar, "w") as d:
             json.dump(response.json(), d, indent=2)
         for item in data["products"]:
             liste.append(data["products"][item]["quick_status"])
