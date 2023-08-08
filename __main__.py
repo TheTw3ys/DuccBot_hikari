@@ -17,6 +17,7 @@ token = os.getenv('TOKEN')
 bot = lightbulb.BotApp(token=token, prefix="!!", intents=hikari.Intents.ALL)
 
 bot.load_extensions_from("./commands")
+print(os.getcwd())
 bot.load_extensions_from("./slash_commands")
 
 

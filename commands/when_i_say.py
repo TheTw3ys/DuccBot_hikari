@@ -14,7 +14,7 @@ plugin = lightbulb.Plugin(name="When I say you say...",
                           description="Some things I came up with dunno")
 
 # makes path available for Linux and Windows
-trigger_list = str(os.path.join(os.getcwd(), "triggers.json"))
+trigger_list = str(os.path.join(os.getcwd(), "../storage/triggers.json"))
 
 
 class AlreadyTrigger(Exception):

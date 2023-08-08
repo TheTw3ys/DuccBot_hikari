@@ -7,7 +7,7 @@ os.chdir(os.getcwd() + "/storage")
 
 
 plugin = lightbulb.Plugin(name="Reactrole")
-reactrole_json = str(os.path.join(os.getcwd(), "reactrole.json"))  # makes path availabile for Linux and Windows
+reactrole_json = str(os.path.join(os.getcwd(), "../storage/reactrole.json"))  # makes path availabile for Linux and Windows
 @plugin.command
 @lightbulb.add_checks(
     lightbulb.checks.owner_only | lightbulb.checks.has_role_permissions(hikari.Permissions.MANAGE_ROLES)
