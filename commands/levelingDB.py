@@ -11,40 +11,54 @@ db = client["DuccBotRanking"]
 plugin = lightbulb.Plugin(name="Leveling", description="Leveling I guess")
 guild_list = [699010600331771955, 911288030210428938, 715208493237403731]
 global_collection = db.Global
-info_json = str(os.path.join(os.getcwd(), "info.json"))  # makes path availabile for Linux and Windows
 
-# TODO make this leaderboard working
-"""
+
 @plugin.command
-@lightbulb.option("text", type=str, description="Why are you sending still something",
-                  modifier=lightbulb.commands.OptionModifier.CONSUME_REST, required=False)
-@lightbulb.option("number", type=int, description="The list of the leaderboard ", required=False, default=1)
-@lightbulb.command(name="leaderboard", description="The leaderboard of the global Ducc Bot")
+@lightbulb.option("rest", type=str, description="Why are you sending still something",
+                  modifier=lightbulb.commands.OptionModifier.CONSUME_REST, required=False, default="1")
+@lightbulb.command(name="leaderboard", description="The leaderboard of the Ducc Bot")
 @lightbulb.implements(lightbulb.commands.PrefixCommand)
 async def command_leaderboard(ctx: lightbulb.context.PrefixContext):
-    max_number = int(ctx.options.number) * 10                     
-    guild = ctx.get_guild()
-    leaderboard = Leveling.get_leaderboard(users_json=user_json)
-    embed = Embed(title="Global Leaderboard", description="empty")
+    rest_list = str(ctx.options.rest).split(" ")
+    try:
+        if not rest_list[0].isnumeric() and not rest_list[1].isnumeric():
+            max_number = 10
+        else:
+            max_number = int(rest_list[0])*10 if rest_list[0].isnumeric() else int(rest_list[1])*10
+    except IndexError:
+        max_number = 10
+    print(max_number)
+    min_number = max_number - 10
+
+    guild_name = ctx.get_guild().name
+    embed = Embed()
     description = ""
+    embed.set_thumbnail(ctx.get_guild().icon_url)
+    if "global" in rest_list:
+        print("inside")
+        embed.set_thumbnail()
+        guild_name = "Global"
+    embed.title = f"Leaderboard for {guild_name}"
+
+    leaderboard = db[guild_name].find().sort("experience", pymongo.DESCENDING)
+
     x = 0
-    for list1 in leaderboard:
+    len_leaderboard = 0
+    for member in leaderboard:
         x += 1
-        if x <= max_number -10:            
-            continue
-        x + max_number - 10
-        member = f"<@!{list1[0]}>"
-        string = f"{x}. {member} {list1[1]}exp lvl {int(list1[1] ** (1 / 3))}\r\n"
-        x - max_number + 10
-        description+= string
-        if x == max_number:
-            break
+        len_leaderboard += 1
+        if min_number < x <= max_number:
+            user_name = f"<@!{member['_id']}>"
+            string = f"{x}. {user_name} {member['experience']}exp lvl {member['level']}\r\n"
+            description += string
+
     embed.description = str(description)
     if not description:
-        embed.description= "Empty\r\nBro read the page number"    
-    embed.set_footer(f"Page {int(max_number/10)}/{int(len(leaderboard)/10)+ 1}")
+        embed.description = "Empty\r\nBro read the page number"
+    embed.set_footer(f"Page {int(max_number/10)}/{int((len_leaderboard+ 10)/10)}        Full view at "
+                     f"https://duccbot.ichweissja.net")
+    embed.url = "https://duccbot.ichweissja.net"
     await ctx.respond(embed=embed)
-"""
 
 
 @plugin.command

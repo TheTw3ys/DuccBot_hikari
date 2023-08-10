@@ -69,9 +69,9 @@ async def command_userinfo(ctx: lightbulb.context.PrefixContext):
 
 @plugin.command
 @lightbulb.option("member", "The member you want information about", type=hikari.Member, required=False)
-@lightbulb.implements(commands.PrefixCommand)
 @lightbulb.command(name="avatar", aliases=("pb", "pfp", "pfb", "Avatar"),
                    description="Gives you some information about a member or yourself")
+@lightbulb.implements(commands.PrefixCommand)
 async def command_avatar(ctx: lightbulb.context.PrefixContext):
     user = ctx.options.member
     if not user:
@@ -82,8 +82,8 @@ async def command_avatar(ctx: lightbulb.context.PrefixContext):
 
 
 @plugin.command
-@lightbulb.implements(commands.PrefixCommand)
 @lightbulb.command(name="ping", description="Gives you some information about a member or yourself")
+@lightbulb.implements(commands.PrefixCommand)
 async def command_ping(ctx: lightbulb.context.PrefixContext):
     await ctx.respond(f"Pong! {(ctx.bot.heartbeat_latency * 1000):2f}ms")
 
@@ -94,5 +94,6 @@ def load(bot: lightbulb.BotApp):
 
 def unload(bot: lightbulb.BotApp):
     bot.remove_plugin(plugin)
+
 
 os.chdir("..")
