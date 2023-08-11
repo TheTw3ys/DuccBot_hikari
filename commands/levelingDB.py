@@ -40,7 +40,7 @@ async def command_leaderboard(ctx: lightbulb.context.PrefixContext):
         guild_name = "Global"
     embed.title = f"Leaderboard for {guild_name}"
 
-    leaderboard = db[guild_name].find().sort("experience", pymongo.DESCENDING)
+    leaderboard = db[f"{ctx.guild_id}-{guild_name}"].find().sort("experience", pymongo.DESCENDING)
 
     x = 0
     len_leaderboard = 0
@@ -48,7 +48,7 @@ async def command_leaderboard(ctx: lightbulb.context.PrefixContext):
         x += 1
         len_leaderboard += 1
         if min_number < x <= max_number:
-            user_name = f"<@!{member['_id']}>"
+            user_name = f"<@!{int(member['_id'])}>"
             string = f"{x}. {user_name} {member['experience']}exp lvl {member['level']}\r\n"
             description += string
 
@@ -89,7 +89,7 @@ async def command_expchange(ctx: lightbulb.context.PrefixContext):
 async def command_level(ctx: lightbulb.context.PrefixContext):
     member = ctx.options.member
     guild = ctx.get_guild()
-    collection = db[f"{guild.name}"] if str(ctx.options.text).lower() != "global" else db.Global
+    collection = db[f"{guild.id}-{guild.name}"] if str(ctx.options.text).lower() != "global" else db.Global
     user = ctx.author if not member else member
     obj = collection.find_one(filter={"_id": user.id})
     experience = obj.get('experience')
@@ -110,21 +110,27 @@ async def command_level(ctx: lightbulb.context.PrefixContext):
 @plugin.listener(event=hikari.MessageCreateEvent)
 async def on_message(event: hikari.MessageCreateEvent):
     guild = await event.app.rest.fetch_guild(event.message.guild_id)
+    guild_name_string = f"{guild.id}-{guild.name}"
+    experience = 10
+    try:
+        experience = client["DuccBotConfig"].get_collection("info").find_one(filter={"_id": guild.id}).get("expchange")
+    except AttributeError:
+        client["DuccBotConfig"].get_collection("info").insert_one({"_id": guild.id, "expchange": 5})
+
     if not event.author.is_bot:
-        if guild.name not in db.list_collection_names():
-            db.create_collection(name=guild.name)
-            client["DuccBotConfig"].get_collection("info").insert_one({"_id": guild.id, "expchange": 5})
+        if guild_name_string not in db.list_collection_names():
+            db.create_collection(name=guild_name_string)
+
     else:
         return
-    collection = db.get_collection(guild.name)
+    collection = db.get_collection(guild_name_string)
 
     async def update_full_data(collection: Collection, exp=5):
         await update_data(user=event.author, collection=collection)
         await add_experience(user=event.author, collection=collection, exp=exp)
         await level_up(user=event.author, collection=collection, event=event)
 
-    await update_full_data(collection, client["DuccBotConfig"].get_collection("info").find_one(
-        filter={"_id": guild.id}).get("expchange"))
+    await update_full_data(collection, experience)
     await update_full_data(global_collection)
 
 
@@ -132,7 +138,7 @@ async def on_message(event: hikari.MessageCreateEvent):
 async def on_member_join(event: hikari.MemberCreateEvent):
     guild = await event.app.rest.fetch_guild(event.guild_id)
     user = event.member.user
-    collection = db[f"{guild.name}"]
+    collection = db[f"{guild.id}-{guild.name}"]
     await update_data(user, collection)
 
 
