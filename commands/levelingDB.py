@@ -1,12 +1,13 @@
 import os
-
 import hikari
 import lightbulb
 import pymongo
 from hikari import Embed
 from pymongo.collection import Collection
+import pymongo
 host, port = os.getenv("DB_HOST"), int(os.getenv("DB_PORT"))
 client = pymongo.MongoClient(host, port)
+
 db = client["DuccBotRanking"]
 plugin = lightbulb.Plugin(name="Leveling", description="Leveling I guess")
 guild_list = [699010600331771955, 911288030210428938, 715208493237403731]
@@ -115,7 +116,7 @@ async def on_message(event: hikari.MessageCreateEvent):
     try:
         experience = client["DuccBotConfig"].get_collection("info").find_one(filter={"_id": guild.id}).get("expchange")
     except AttributeError:
-        client["DuccBotConfig"].get_collection("info").insert_one({"_id": guild.id, "expchange": 5})
+        client["DuccBotConfig"].get_collection("info").insert_one({"_id": guild.id, "expchange": 5, "name": guild.name})
 
     if not event.author.is_bot:
         if guild_name_string not in db.list_collection_names():
