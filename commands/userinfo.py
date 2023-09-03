@@ -3,16 +3,15 @@ import lightbulb
 from hikari import Embed
 from lightbulb import commands
 import os
-import sys
-os.chdir(os.getcwd() + "/storage")# changes directory to ./v2/storage
+import pymongo
+host, port = os.getenv("DB_HOST"), int(os.getenv("DB_PORT"))
+client = pymongo.MongoClient(host, port)
 
-sys.path.append(f"{os.getcwd()}") # adds folder "/storage" to sys.path temporarily
-
-from functions_and_classes import Leveling # module can now be used from ./v2/storage/functions_and_classes
+db = client["DuccBotRanking"]
 
 plugin = lightbulb.Plugin(name="Userinformation", description="Gives users information about themselves or others")
 
-users_json = str(os.path.join(os.getcwd(), "Global.json")) # makes path availabile for Linux and Windows
+global_collection = db.Global
 
 
 @plugin.command
@@ -24,8 +23,6 @@ async def command_userinfo(ctx: lightbulb.context.PrefixContext):
     user = ctx.options.member
     if user:
         member = user
-        print(member.created_at)
-        print(type(member))
     else:
         member = ctx.member
         print(ctx.author.created_at)
@@ -38,6 +35,7 @@ async def command_userinfo(ctx: lightbulb.context.PrefixContext):
     for role in roles:
         if role.id != guild.id:
             all_roles += '{} \r\n'.format(role.mention)
+
     if all_roles:
         embed.add_field(name="Rollen", value=all_roles, inline=True)
     embed.set_thumbnail(member.avatar_url)
@@ -47,20 +45,21 @@ async def command_userinfo(ctx: lightbulb.context.PrefixContext):
                     inline=True)
     embed.add_field(name='Discord beigetreten', value=f"<t:{created_at}:d> (<t:{created_at}:R>)",
                     inline=True)
-    lb = Leveling.get_leaderboard(users_json=users_json)
+    leaderboard = db[f"{ctx.guild_id}-{ctx.get_guild().name}"].find().sort("experience", pymongo.DESCENDING)
     place = 1
-    for list1 in lb:
-        if list1[0] == member.id:
-            xp = int(list1[1])
-            level = int(xp ** (1 / 3))
+    for user in leaderboard:
+        print(user["_id"])
+        if user["_id"] == member.id:
+            xp = int(user["experience"])
+            level = int(xp ** (1/3))
             break
         else:
             place += 1
     rank = {1: ":first_place:", 2: ":second_place:", 3: ":third_place:"}
-    for x in rank:
-        if x == place:
-            place = rank.get(x)
-    embed.add_field(name="Leveling:", value=f"Rank: {place}.\r\n"
+    if place in rank:
+        place = rank[place]
+    place = str(place) + "."
+    embed.add_field(name="Leveling:", value=f"Rank: {place}/{len(list(leaderboard))}\r\n"
                                             f"Experience: {xp}exp\r\n"
                                             f"Level: {int(level)}")
     embed.set_footer(text='hehe fishiis und so')
@@ -94,6 +93,3 @@ def load(bot: lightbulb.BotApp):
 
 def unload(bot: lightbulb.BotApp):
     bot.remove_plugin(plugin)
-
-
-os.chdir("..")
