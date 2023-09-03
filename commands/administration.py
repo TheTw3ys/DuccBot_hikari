@@ -7,8 +7,6 @@ os.chdir(os.getcwd() + "/storage")
 
 sys.path.append(f"{os.getcwd()}")
 
-from functions_and_classes import Administration
-
 plugin = lightbulb.Plugin(name="StupidStuff", description="Some things I came up with dunno")
 
 
@@ -24,8 +22,13 @@ plugin = lightbulb.Plugin(name="StupidStuff", description="Some things I came up
 async def command_mute(ctx: lightbulb.context.PrefixContext):
     member: hikari.Member = ctx.options.member
     guild = ctx.get_guild()
-    muted_role: hikari.Guild.Role = Administration.get_role(server=guild, name="muted")
-    print(muted_role)
+    muted_role = None
+    try:
+        for role in guild.get_roles():
+            if guild.get_role(role).name.lower() == "muted":
+                muted_role = guild.get_role(role)
+    except hikari.NotFoundError:
+        pass
     if muted_role is None:
         muted_role = await plugin.bot.rest.create_role(guild=guild, name="muted", permissions=None)
         overwrite = hikari.PermissionOverwrite(
