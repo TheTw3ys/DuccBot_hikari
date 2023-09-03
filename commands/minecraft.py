@@ -12,10 +12,7 @@ os.chdir(os.getcwd() + "/storage")
 sys.path.append(f"{os.getcwd()}")  # adds folder "/storage" to sys.path temporarily
 _json = ".json"
 
-from functions_and_classes import \
-    Leveling  # module can now be used from ./v2/storage/functions_and_classes
-
-plugin = lightbulb.Plugin(name="Leveling", description="Leveling I guess")
+plugin = lightbulb.Plugin(name="Minecraft", description="Leveling")
 guild_list = [699010600331771955, 911288030210428938, 715208493237403731]
 
 
