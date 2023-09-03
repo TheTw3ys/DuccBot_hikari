@@ -7,11 +7,6 @@ import hikari
 import lightbulb
 from hikari import Embed
 
-os.chdir(os.getcwd() + "/storage")
-
-sys.path.append(f"{os.getcwd()}")  # adds folder "/storage" to sys.path temporarily
-_json = ".json"
-
 plugin = lightbulb.Plugin(name="Minecraft", description="Leveling")
 guild_list = [699010600331771955, 911288030210428938, 715208493237403731]
 
@@ -26,6 +21,7 @@ async def command_uuid(ctx: lightbulb.context.PrefixContext):
     ign = ctx.options.ign.strip()
     response = requests.request(url=f"https://minecraft-api.com/api/uuid/{ign}",method= "GET")
     await ctx.respond(hikari.Embed(description=response.text, color=0x22a7f0 ))
+
 
 @plugin.command
 @lightbulb.option("text", type=str, description="Why are you sending still something",
@@ -45,6 +41,3 @@ def load(bot: lightbulb.BotApp):
 
 def unload(bot: lightbulb.BotApp):
     bot.remove_plugin(plugin)
-
-
-os.chdir("..")
