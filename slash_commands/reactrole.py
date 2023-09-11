@@ -1,18 +1,14 @@
-import json
-import os
-import sys
-
 import hikari
 import lightbulb
+import os
 from hikari import Embed
-
-os.chdir(os.getcwd() + "/storage")
-sys.path.append(f"{os.getcwd()}")  # adds folder "/storage" to sys.path temporarily
-
-reactrole_json = str(os.path.join(os.getcwd(), "reactrole.json"))  # makes path availabile for Linux and Windows
+import pymongo
+host, port = os.getenv("DB_HOST"), int(os.getenv("DB_PORT"))
+client = pymongo.MongoClient(host, port)
 
 plugin = lightbulb.Plugin(name="Reactrole")
-
+db = client["DuccBotInfo"]
+collection = db["reactionroles"]
 
 @plugin.command
 @lightbulb.add_checks(
@@ -32,6 +28,7 @@ async def command_reactrole(ctx: lightbulb.context.SlashContext):
     emoji: hikari.Emoji = ctx.options.emoji
     channel: hikari.GuildChannel = ctx.options.channel
     ctx_channel: hikari.GuildChannel = ctx.get_channel()
+
     if not channel:
         channel: hikari.PartialChannel = ctx.get_channel()
 
@@ -41,22 +38,21 @@ async def command_reactrole(ctx: lightbulb.context.SlashContext):
 
     await msg.add_reaction(emoji)
 
-    with open(reactrole_json) as json_file:
-        data = json.load(json_file)
+    new_obj = {'role_name': role.name,
+               'role_id': role.id,
+               'emoji': emoji,
+               'guild_name': ctx.get_guild().name,
+               '_id': msg.id}
 
-        new_react_role = {'role_name': role.name,
-                          'role_id': role.id,
-                          'emoji': emoji,
-                          'message_id': msg.id}
-
-        data.append(new_react_role)
-
-    with open(reactrole_json, 'w') as f:
-        json.dump(data, f, indent=4)
+    collection.insert_one(new_obj)
 
     if channel != ctx.get_channel():
-        await ctx.respond(f"The Reaction-Message was created at {ctx_channel.mention}")
+        await ctx.respond(f"The Reaction-Message was created at {channel.mention}")
 
+
+"""
+REACTION_ADD AND REACTION_REMOVE GET HANDLED BY COMMANDS/REACTROLE.py
+"""
 
 def load(bot: lightbulb.BotApp):
     bot.add_plugin(plugin)
