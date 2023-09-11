@@ -25,7 +25,6 @@ async def command_userinfo(ctx: lightbulb.context.PrefixContext):
         member = user
     else:
         member = ctx.member
-        print(ctx.author.created_at)
     guild = ctx.get_guild()
     embed = Embed(title='Userinfo für {}'.format(member),
                   description='Dies ist eine Userinfo für den User {}'.format(member.mention),
@@ -58,6 +57,7 @@ async def command_userinfo(ctx: lightbulb.context.PrefixContext):
     rank = {1: ":first_place:", 2: ":second_place:", 3: ":third_place:"}
     if place in rank:
         place = rank[place]
+    print(list(leaderboard))
     place = str(place) + "."
     embed.add_field(name="Leveling:", value=f"Rank: {place}/{len(list(leaderboard))}\r\n"
                                             f"Experience: {xp}exp\r\n"
