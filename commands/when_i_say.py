@@ -1,89 +1,63 @@
-import json
 import os
-import sys
 
 import hikari
 import lightbulb
+import pymongo
 
-os.chdir(os.getcwd() + "/storage")  # changes directory to ./v2/storage
+host, port = os.getenv("DB_HOST"), int(os.getenv("DB_PORT"))
+client = pymongo.MongoClient(host, port)
 
-# adds folder "/storage" to sys.path temporarily
-sys.path.append(f"{os.getcwd()}")
-
+db = client["DuccBotInfo"]
 plugin = lightbulb.Plugin(name="When I say you say...",
                           description="Some things I came up with dunno")
-
-# makes path available for Linux and Windows
-trigger_list = str(os.path.join(os.getcwd(), "../storage/triggers.json"))
+collection = db.get_collection("when_i_say")
 
 
 class AlreadyTrigger(Exception):
     pass
 
 
-@plugin.listener(hikari.MessageCreateEvent)  # TODO Write this better
+class GuildNotFound(Exception):
+    pass
+
+
+@plugin.listener(hikari.MessageCreateEvent)
 async def on_message(event: hikari.MessageCreateEvent):
     msg = event.content
-    r_guild = await event.app.rest.fetch_guild(event.message.guild_id)
-    if event.is_human and "!!" not in msg:
-        if "if i say" in msg:
-            def split_message(message, guild):
-                # splits message to ['when i say this ', ' that']
-                liste = message.split("you say")
-                you_say = str(liste[1]).strip()  # thing that is reacted to
-
-                liste_2 = str(liste[0]).strip().split("if i say")
-                when_i_say = str(liste_2[1]).strip()  # trigger
-                when_i_say_data = {f"{when_i_say}": f"{you_say}"}  # data
-                if not os.path.exists(trigger_list):
-                    with open(trigger_list,
-                              "w") as a:  # possible because it is the same as above but now actually created
-                        a.write('{'
-                                '"guilds":{'
-                                '}'
-                                '}')
-                with open(trigger_list) as f:
-                    data: dict = json.load(f)
-
-                    if guild in data["guilds"]:  # if guild_id in storage
-                        # if the trigger already registered
-                        if when_i_say in data["guilds"][guild]:
-                            raise AlreadyTrigger
-
-                        # just update the triggers of the guild_id
-                        data["guilds"][guild].update(when_i_say_data)
-                    else:
-                        data["guilds"].update(
-                            {guild: when_i_say_data})  # add new guild_id to storage and first triggers
-
-                with open(trigger_list, 'w') as f:
-                    # add new trigger and response
-                    json.dump(data, f, indent=2)
+    guild = await event.app.rest.fetch_guild(event.message.guild_id)
+    if event.is_human and "!!" not in msg and "_id" not in msg:
+        if "when i say" in msg.lower():
+            message_list = msg.split("you say")
+            answer = str(message_list[1].strip())  # said thing
+            trigger = str(message_list[0]).strip().split("when i say")[1].strip()  # trigger
+            print(message_list, "\r\n", trigger, "\r\n", answer)
 
             try:
-                split_message(msg, str(r_guild.id))
-                await event.message.respond("Added Trigger to database")
+                data = collection.find_one(filter={"_id": guild.id})
+                if not data:
+                    raise GuildNotFound
+
+                if trigger in dict(data):
+                    raise AlreadyTrigger
+
+            except GuildNotFound:
+                collection.insert_one({"_id": guild.id})
+
             except AlreadyTrigger:
-                await event.message.respond("This is already a Trigger. Do you want to edit it?")
+                await event.message.respond(f'"{trigger}" is already a Trigger.')
+
+            collection.update_one(filter={"_id": guild.id}, update={"$set": {trigger: answer}})
+            await event.message.respond(f'Added Trigger: "{trigger}" to Database')
         else:
-            msg = event.message.content
-            with open(trigger_list, "r") as f:
-                data = json.load(f)
-                liste = []
-                for id in data["guilds"]:
-                    liste.append(id)
-                if str(event.message.guild_id) in liste:
-                    try:
-                        data = data["guilds"][str(event.message.guild_id)]
-                    except KeyError:
-                        with open(trigger_list, "w") as d:
-                            data = json.load(d)
-                            data["guilds"].update({str(event.message.guild_id): {}})
-                            json.dump(data, d, indent=2)
-                    for trigger in data:
-                        if trigger in msg:
-                            answer = data.get(trigger)
-                            await event.message.respond(f"{answer}")
+            try:
+                data = collection.find_one(filter={"_id": guild.id})
+                print(data)
+            except GuildNotFound:
+                return
+            for trigger in data:
+                print(trigger)
+                if trigger in msg:
+                    await event.message.respond(f"{data[trigger]}")
 
 
 @plugin.command
@@ -92,17 +66,18 @@ async def on_message(event: hikari.MessageCreateEvent):
 @lightbulb.command(name="triggers", description="Shows you the triggers of your guild")
 @lightbulb.implements(lightbulb.commands.PrefixCommand)
 async def command_show_triggers(ctx: lightbulb.context.PrefixContext):
-    with open(trigger_list) as f:
-        data: dict = json.load(f)
-        guild = ctx.get_guild()
-        string = "Triggers:\r\n"
+    guild = ctx.get_guild()
+    data = collection.find_one(filter={"_id": guild.id})
+    string = "Triggers:\r\n"
 
-        for trigger in data["guilds"][f"{guild.id}"]:
-            value = data["guilds"][f"{guild.id}"].get(trigger)
-            string += f"when you say **{trigger}** i say: **{value}**\r\n"
-        embed = hikari.Embed(title="Triggers")
-        embed.add_field(value=string, name=f"For Guild: **{guild.name}** ")
-        await ctx.respond(embed=embed)
+    for trigger in data:
+        if trigger == "_id":
+            continue
+        value = data[trigger]
+        string += f"when you say **{trigger}** i say: **{value}**\r\n"
+    embed = hikari.Embed(title="Triggers")
+    embed.add_field(value=string, name=f"For Guild: **{guild.name}** ")
+    await ctx.respond(embed=embed)
 
 
 @plugin.command
@@ -115,16 +90,13 @@ async def command_edit_trigger(ctx: lightbulb.context.PrefixContext):
     trigger = ctx.options.trigger
     answer = ctx.options.answer
     guild = ctx.get_guild()
-    with open(trigger_list, "r") as f:
-        data = json.load(f)
-        if trigger in data["guilds"][str(guild.id)]:
-            data["guilds"][str(guild.id)][trigger] = answer
-
-        else:
-            await ctx.respond(f"There is no trigger with the name: {trigger}")
-            return
-    with open(trigger_list, "w") as f:
-        json.dump(data, f, indent=2)
+    data = collection.find_one(filter={"_id": guild.id})
+    if trigger in data and trigger != "_id":
+        collection.update_one(filter={"_id": guild.id}, update={"$set": {trigger: answer}})
+        await ctx.respond(f'Changed answer for Trigger: "{trigger}" to "{answer}" ')
+    else:
+        await ctx.respond(f"There is no trigger with the name: {trigger}")
+        return
 
 
 @plugin.command
@@ -136,15 +108,12 @@ async def command_edit_trigger(ctx: lightbulb.context.PrefixContext):
 async def command_delete_trigger(ctx: lightbulb.context.PrefixContext):
     trigger = ctx.options.trigger
     guild = ctx.get_guild()
-    with open(trigger_list, "r") as f:
-        data = json.load(f)
-        if trigger in data["guilds"][str(guild.id)]:
-            data["guilds"][str(guild.id)].pop(trigger)
-            await ctx.respond(f"Removed Trigger: **{trigger}**")
-        else:
-            await ctx.respond("That trigger was not found. Maybe you misspelled it?")
-    with open(trigger_list, "w") as f:
-        json.dump(data, f, indent=2)
+    data = collection.find_one(filter={"_id": guild.id})
+    if trigger in data:
+        collection.update_one(filter={"_id": guild.id}, update={"$unset": {trigger: ""}})
+        await ctx.respond(f"Removed Trigger: **{trigger}**")
+    else:
+        await ctx.respond("That trigger was not found. Maybe you misspelled it?")
 
 
 def load(bot: lightbulb.BotApp):
@@ -153,6 +122,3 @@ def load(bot: lightbulb.BotApp):
 
 def unload(bot: lightbulb.BotApp):
     bot.remove_plugin(plugin)
-
-
-os.chdir("..")
