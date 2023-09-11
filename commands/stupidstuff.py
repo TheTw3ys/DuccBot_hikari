@@ -1,5 +1,4 @@
 import time
-
 import hikari
 import lightbulb
 from hikari import Embed
@@ -7,9 +6,8 @@ from lightbulb import commands
 import random
 import requests
 import json
-import os
+
 plugin = lightbulb.Plugin(name="StupidStuff", description="Some things I came up with dunno")
-os.chdir(os.getcwd() + "/storage")
 
 
 @plugin.command
@@ -102,5 +100,3 @@ def load(bot: lightbulb.BotApp):
 
 def unload(bot: lightbulb.BotApp):
     bot.remove_plugin(plugin)
-
-os.chdir("..")
