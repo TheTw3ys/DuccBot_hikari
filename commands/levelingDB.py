@@ -35,7 +35,7 @@ async def command_leaderboard(ctx: lightbulb.context.PrefixContext):
     description = ""
     embed.set_thumbnail(ctx.get_guild().icon_url)
     guild_string = f"{ctx.guild_id}-{guild_name}"
-    if "global" in rest_list[0].lower() or "global" in rest_list[1].lower():
+    if "global" in rest_list or "Global" in rest_list:
         embed.set_thumbnail()
         guild_string = "Global"
         guild_name = "Global"
