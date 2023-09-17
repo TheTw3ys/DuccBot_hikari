@@ -28,21 +28,20 @@ async def command_leaderboard(ctx: lightbulb.context.PrefixContext):
             max_number = int(rest_list[0])*10 if rest_list[0].isnumeric() else int(rest_list[1])*10
     except IndexError:
         max_number = 10
-    print(max_number)
     min_number = max_number - 10
 
     guild_name = ctx.get_guild().name
     embed = Embed()
     description = ""
     embed.set_thumbnail(ctx.get_guild().icon_url)
-    if "global" in rest_list:
-        print("inside")
+    guild_string = f"{ctx.guild_id}-{guild_name}"
+    if "global" in rest_list[0].lower() or "global" in rest_list[1].lower():
         embed.set_thumbnail()
+        guild_string = "Global"
         guild_name = "Global"
     embed.title = f"Leaderboard for {guild_name}"
 
-    leaderboard = db[f"{ctx.guild_id}-{guild_name}"].find().sort("experience", pymongo.DESCENDING)
-
+    leaderboard = db[guild_string].find().sort("experience", pymongo.DESCENDING)
     x = 0
     len_leaderboard = 0
     for member in leaderboard:
@@ -144,7 +143,6 @@ async def on_member_join(event: hikari.MemberCreateEvent):
 
 
 async def update_data(user, collection: Collection) -> None:
-    print(collection.find_one({"_id": user.id}))
     if not collection.find_one({"_id": user.id}):
         object = {
             "_id": user.id,

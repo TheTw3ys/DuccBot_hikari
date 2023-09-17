@@ -54,6 +54,7 @@ async def command_reactrole(ctx: lightbulb.context.SlashContext):
 REACTION_ADD AND REACTION_REMOVE GET HANDLED BY COMMANDS/REACTROLE.py
 """
 
+
 def load(bot: lightbulb.BotApp):
     bot.add_plugin(plugin)
 
