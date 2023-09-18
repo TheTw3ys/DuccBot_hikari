@@ -4,8 +4,8 @@ from hikari import Embed
 from lightbulb import commands
 import os
 import pymongo
-host, port = os.getenv("DB_HOST"), int(os.getenv("DB_PORT"))
-client = pymongo.MongoClient(host, port)
+db_url= os.getenv("DB_URL")
+client = pymongo.MongoClient(db_url)
 
 db = client["DuccBotRanking"]
 

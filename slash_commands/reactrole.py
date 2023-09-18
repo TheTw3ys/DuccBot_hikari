@@ -3,8 +3,8 @@ import lightbulb
 import os
 from hikari import Embed
 import pymongo
-host, port = os.getenv("DB_HOST"), int(os.getenv("DB_PORT"))
-client = pymongo.MongoClient(host, port)
+db_url= os.getenv("DB_URL")
+client = pymongo.MongoClient(db_url)
 
 plugin = lightbulb.Plugin(name="Reactrole")
 db = client["DuccBotInfo"]
