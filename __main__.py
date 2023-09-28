@@ -5,13 +5,7 @@ import json
 import os
 import time
 
-from dotenv import load_dotenv
-
-load_dotenv()
-
 token = os.getenv('TOKEN')
-
-
 
 # noinspection PyTypeChecker
 bot = lightbulb.BotApp(token=token, prefix="!!", intents=hikari.Intents.ALL)
